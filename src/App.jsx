@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { marked } from 'marked';
 import './App.css';
 
@@ -40,6 +40,62 @@ function App() {
   const [newFileName, setNewFileName] = useState('');
   const [newFolderName, setNewFolderName] = useState('');
   const [expandedFolders, setExpandedFolders] = useState(new Set());
+  const [isScrollSyncEnabled, setIsScrollSyncEnabled] = useState(true);
+
+  // Refs for scroll sync
+  const editorRef = useRef(null);
+  const previewRef = useRef(null);
+  const isScrollingRef = useRef(false);
+
+  // Scroll Sync Logic
+  useEffect(() => {
+    const editor = editorRef.current;
+    const preview = previewRef.current;
+
+    if (!editor || !preview || !isScrollSyncEnabled) return;
+
+    const handleEditorScroll = () => {
+      if (isScrollingRef.current) return;
+      isScrollingRef.current = true;
+      
+      const editorMaxScroll = editor.scrollHeight - editor.clientHeight;
+      const previewMaxScroll = preview.scrollHeight - preview.clientHeight;
+
+      if (editorMaxScroll > 0) {
+        const percentage = editor.scrollTop / editorMaxScroll;
+        preview.scrollTop = percentage * previewMaxScroll;
+      }
+      
+      setTimeout(() => {
+        isScrollingRef.current = false;
+      }, 10);
+    };
+
+    const handlePreviewScroll = () => {
+      if (isScrollingRef.current) return;
+      isScrollingRef.current = true;
+
+      const editorMaxScroll = editor.scrollHeight - editor.clientHeight;
+      const previewMaxScroll = preview.scrollHeight - preview.clientHeight;
+
+      if (previewMaxScroll > 0) {
+        const percentage = preview.scrollTop / previewMaxScroll;
+        editor.scrollTop = percentage * editorMaxScroll;
+      }
+
+      setTimeout(() => {
+        isScrollingRef.current = false;
+      }, 10);
+    };
+
+    editor.addEventListener('scroll', handleEditorScroll);
+    preview.addEventListener('scroll', handlePreviewScroll);
+
+    return () => {
+      editor.removeEventListener('scroll', handleEditorScroll);
+      preview.removeEventListener('scroll', handlePreviewScroll);
+    };
+  }, [isScrollSyncEnabled]); // Re-attach only when enabled/disabled
 
   // Custom Hooks
   const { editorWidth, isResizing, handleMouseDown } = useResizer(50);
@@ -190,6 +246,8 @@ function App() {
           setShowNewFileModal(true);
         }}
         onDownload={downloadFile}
+        isScrollSyncEnabled={isScrollSyncEnabled}
+        onToggleScrollSync={() => setIsScrollSyncEnabled(!isScrollSyncEnabled)}
       />
 
       <div className="main-content">
@@ -234,6 +292,7 @@ function App() {
           onInsertQuote={() => handleInsertMarkdown(mdHelpers.insertQuote)}
           onInsertTable={() => handleInsertMarkdown(mdHelpers.insertTable)}
           onInsertHorizontalRule={() => handleInsertMarkdown(mdHelpers.insertHorizontalRule)}
+          editorRef={editorRef}
         />
 
         <Resizer 
@@ -244,6 +303,7 @@ function App() {
         <Preview 
           htmlContent={getPreviewHtml()} 
           previewWidth={100 - editorWidth} 
+          previewRef={previewRef}
         />
       </div>
 

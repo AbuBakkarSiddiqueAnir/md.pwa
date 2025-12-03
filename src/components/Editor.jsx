@@ -17,7 +17,8 @@ export default function Editor({
   onInsertOrderedList,
   onInsertQuote,
   onInsertTable,
-  onInsertHorizontalRule
+  onInsertHorizontalRule,
+  editorRef
 }) {
   return (
     <div className="editor-container" style={{ width: `${editorWidth}%` }}>
@@ -46,6 +47,7 @@ export default function Editor({
 
       <div className="editor-wrapper">
         <textarea
+          ref={editorRef}
           className="editor"
           value={content}
           onChange={(e) => onContentChange(e.target.value)}

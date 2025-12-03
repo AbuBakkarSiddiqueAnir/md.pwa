@@ -1,6 +1,6 @@
-import { FiFile, FiSave, FiPlus, FiDownload, FiFileText } from 'react-icons/fi';
+import { FiFile, FiSave, FiPlus, FiDownload, FiFileText, FiLink } from 'react-icons/fi';
 
-export default function Header({ currentFile, onNewFile, onDownload }) {
+export default function Header({ currentFile, onNewFile, onDownload, isScrollSyncEnabled, onToggleScrollSync }) {
   return (
     <header className="header">
       <div className="header-left">
@@ -22,6 +22,18 @@ export default function Header({ currentFile, onNewFile, onDownload }) {
         )}
       </div>
       <div className="header-actions">
+        <button 
+          className={`btn btn-icon ${isScrollSyncEnabled ? 'active' : ''}`}
+          onClick={onToggleScrollSync}
+          title={isScrollSyncEnabled ? "Disable Scroll Sync" : "Enable Scroll Sync"}
+          style={{ 
+            color: isScrollSyncEnabled ? 'var(--color-primary)' : 'inherit',
+            borderColor: isScrollSyncEnabled ? 'var(--color-primary)' : 'var(--border-primary)',
+            background: isScrollSyncEnabled ? 'var(--bg-elevated)' : 'transparent'
+          }}
+        >
+          <FiLink size={18} />
+        </button>
         <button 
           className="btn btn-secondary"
           onClick={onNewFile}
